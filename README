@@ -3,11 +3,14 @@ test code re-use. This project also provides alternatives to demonstrate the
 inheritance's effectiveness. We illustrate by implementing and testing a couple
 of implementations of Map.
 
+
+= The Pattern =
+
 Inheritance can be used to test the common requirements of differing
 implementations. To apply the inhertance you follow these steps:
 1. Create an abstract class for the common unit tests
-2. Add an abstract method that expects the extender to provide the real
-   implemenation
+2. Add an abstract method that expects the extender acts as the factory for the
+   real implemenation
 3. Add @Tests the verify the requirements of the interface
 4. Create a unit test class for each implementation and extend from the abstract
    unit test class
@@ -15,4 +18,62 @@ implementations. To apply the inhertance you follow these steps:
 6. Add any additional @Tests that test requirements specific to the
    implementation
 
+= Introduction to Example =
 
+In this example we implement a map with three methods, get, put, and getKeys: 
+public interface Map<K,V>  {
+	void put(K key, V value);
+	V get(K key);
+	List<K> getKeys();
+}
+
+We provide two implemenations of the interface. InefficientMap uses two
+arraylists to store the keys and values. SortedMap cheats by using the TreeMap
+implementation for the purpose of this example.
+
+= Step 1 and 2: Creating the Abstact Class =
+You create an abstract class with an abstract factory method for returning the
+real implemenation.
+
+public abstract class MapTest {
+	protect abstract Map<K,V> makeImpl();
+}
+
+= Step 3: Add @Tests =
+In the abstract unit test, we include requirements that are common to all maps.
+The tests make use of the factory method for getting an instance of the
+implementation.
+
+Here are the ones we look at in this example, but there are many more.
+
+Getting a key that doesn't exist is null
+// TODO
+
+Getting a key that exist is returns the value
+// TODO
+
+Getting a key that was replaced is returns the new value.
+// TODO
+
+Now for each implementation we extend from the abstract class and implement the
+factory method.
+
+public class InefficientMapTest extends MapTest {
+	
+	public Map<K,V> makeImpl() {
+		return new InefficientMap<>();
+	}
+
+}
+
+= Repetitive Alternative =
+An alternative to this pattern is to include all the tests in a help class and
+have each unit test call each of the help methods. As the number of
+implementations 
+
+// TODO provide examples
+
+= Conclusion =
+Inheritence isn't always bad in unit tests. You can apply it to non-repetitively
+test common requirements over all implemenations. We explored an example that
+shows how to apply it and how it facilitates code reuse.
