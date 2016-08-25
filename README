@@ -1,0 +1,18 @@
+This project contains example for for effectively applying inheritance for unit
+test code re-use. This project also provides alternatives to demonstrate the
+inheritance's effectiveness. We illustrate by implementing and testing a couple
+of implementations of Map.
+
+Inheritance can be used to test the common requirements of differing
+implementations. To apply the inhertance you follow these steps:
+1. Create an abstract class for the common unit tests
+2. Add an abstract method that expects the extender to provide the real
+   implemenation
+3. Add @Tests the verify the requirements of the interface
+4. Create a unit test class for each implementation and extend from the abstract
+   unit test class
+5. Provide the real implementation expected by the abstract method
+6. Add any additional @Tests that test requirements specific to the
+   implementation
+
+
