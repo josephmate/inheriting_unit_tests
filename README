@@ -36,7 +36,7 @@ You create an abstract class with an abstract factory method for returning the
 real implemenation.
 
 public abstract class MapTest {
-	protect abstract Map<K,V> makeImpl();
+	protect abstract Map<K,V> makeMap();
 }
 
 = Step 3: Add @Tests =
@@ -60,7 +60,7 @@ factory method.
 
 public class InefficientMapTest extends MapTest {
 	
-	public Map<K,V> makeImpl() {
+	public Map<K,V> makeMap() {
 		return new InefficientMap<>();
 	}
 
