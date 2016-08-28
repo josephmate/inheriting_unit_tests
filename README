@@ -1,13 +1,33 @@
-This project contains example for for effectively applying inheritance for unit
-test code re-use. This project also provides alternatives to demonstrate the
-inheritance's effectiveness. We illustrate by implementing and testing a couple
-of implementations of Map.
+Suppose you wanted to unit test java.util.Map.
+How would you verify each implementation?
+Take a quick look at the Map javadoc, and you'll 20 (https://docs.oracle.com/javase/7/docs/api/java/util/Map.html).
+Each Map implementation has common properties that you want write once.
+In this post I illustrate two techniques you can use for testing common requirements of various implementations by trying to implement and test a simplified version of Map.
+I encountered a similar problem when taking the coursera parallel programming course.
+You had to create sequential and parallel implentations and I noticed I ended up copying and pasting my tests of the sequential implementation to the paralell one. 
 
+= Introduction to Example =
 
-= The Pattern =
+In this example we implement a simplified Map interface with three methods, get, put, and getKeys: 
 
-Inheritance can be used to test the common requirements of differing
-implementations. To apply the inhertance you follow these steps:
+public interface Map<K,V>  {
+	void put(K key, V value);
+	V get(K key);
+	List<K> getKeys();
+}
+
+We provide two implemenations of the interface.
+InefficientMap uses two arraylists to store the keys and values.
+SortedMap cheats by using the TreeMap implementation for the purpose of this example.
+
+= Method 1: Inheritance =
+
+Inheritance can be used to test the common requirements of differing implementations.
+This method provides the least code duplicated code.
+However, inheritance has the problem of becoming more tightly coupled to the parent classes (Effective Java and https://www.quora.com/What-are-the-main-disadvantages-of-inheritance-in-object-oriented-programming-and-why) so I provide a composition solution as well.
+You have all the common test cases in the base class which make use of a factory method for generating the implementation.
+
+To apply the inhertance you follow these steps:
 1. Create an abstract class for the common unit tests
 2. Add an abstract method that expects the extender acts as the factory for the
    real implemenation
@@ -18,62 +38,65 @@ implementations. To apply the inhertance you follow these steps:
 6. Add any additional @Tests that test requirements specific to the
    implementation
 
-= Introduction to Example =
 
-In this example we implement a map with three methods, get, put, and getKeys: 
-public interface Map<K,V>  {
-	void put(K key, V value);
-	V get(K key);
-	List<K> getKeys();
-}
+== Step 1 and 2: Creating the Abstact Class ==
+You create an abstract class with an abstract factory method for returning the real implemenation.
 
-We provide two implemenations of the interface. InefficientMap uses two
-arraylists to store the keys and values. SortedMap cheats by using the TreeMap
-implementation for the purpose of this example.
-
-= Step 1 and 2: Creating the Abstact Class =
-You create an abstract class with an abstract factory method for returning the
-real implemenation.
-
-public abstract class MapTest {
+public abstract class InheritingMapTest {
 	protect abstract Map<K,V> makeMap();
 }
 
-= Step 3: Add @Tests =
+== Step 3: Add @Tests ==
 In the abstract unit test, we include requirements that are common to all maps.
-The tests make use of the factory method for getting an instance of the
-implementation.
+The tests make use of the factory method for getting an instance of the implementation.
 
-Here are the ones we look at in this example, but there are many more.
+Here we look at only one of the many test cases for the Map interface.
+The factory provides us with a mechanism for obtaining a new instance of the implementation.
 
-Getting a key that doesn't exist is null
-// TODO
-
-Getting a key that exist is returns the value
-// TODO
-
-Getting a key that was replaced is returns the new value.
-// TODO
-
-Now for each implementation we extend from the abstract class and implement the
-factory method.
-
-public class InefficientMapTest extends MapTest {
-	
-	public Map<K,V> makeMap() {
-		return new InefficientMap<>();
+Getting the value using a key that was replaced is returns the most recent value.
+	@Test
+	public void testValueReplaced() {
+		Map<Integer,Integer> map = makeMap();
+		map.put(0, 10);
+		map.put(0, 12);
+		assertEquals(Integer.valueOf(12), map.get(0));
 	}
 
+
+== Step 4 and 5: Create a Unit Test Class for each Implementation ==
+Now for each implementation we extend from the abstract class and implement the factory method.
+
+public class InheritingSortedMapTest extends InheritingMapTest {
+	
+	protected Map<Integer,Integer> makeMap() {
+		return new SortedMap<>();
+	}
 }
 
-= Repetitive Alternative =
-An alternative to this pattern is to include all the tests in a help class and
-have each unit test call each of the help methods. As the number of
-implementations 
+== Step 6: Add Additional Tests of Uncommon Requirements to Subclass ==
+
+The sorted map comes with the additional requirement that the getKeys() method returns the keys in sorted order.
+We add tests of this new requirement into the subclass.
+
+	@Test
+	public void testKeysSorted() {
+		SortedMap<Integer,Integer> map = new SortedMap<>();
+		map.put(2,12);
+		map.put(1,11);
+		map.put(3,13);
+		List<Integer> keys = map.getKeys();
+		for(int i = 0 ; i<3; i++) {
+			assertEquals(Integer.valueOf(i+1),keys.get(i));
+		}
+	}
+
+
+= Method 2: Composition  =
+An alternative to this pattern is to include all the tests in a help class and have each unit test call each of the help methods.
+The problem with this solution is that you end up having a method which calls all your test methods which duplicates some code.
+More importantly, it makes it more difficult to figure out which test failed because you have to inpsect the stack trace instead of click on the failed test in an IDE like eclipse.
 
 // TODO provide examples
 
 = Conclusion =
-Inheritence isn't always bad in unit tests. You can apply it to non-repetitively
-test common requirements over all implemenations. We explored an example that
-shows how to apply it and how it facilitates code reuse.
+If you notice you're copying and pasting unit test code for common requirements, consider one of these two techniques. 
