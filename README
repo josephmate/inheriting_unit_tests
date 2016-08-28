@@ -1,10 +1,12 @@
 Suppose you wanted to unit test java.util.Map.
 How would you verify each implementation?
-Take a quick look at the Map javadoc, and you'll 20 (https://docs.oracle.com/javase/7/docs/api/java/util/Map.html).
-Each Map implementation has common properties that you want write once.
-In this post I illustrate two techniques you can use for testing common requirements of various implementations by trying to implement and test a simplified version of Map.
+Take a quick look at the Map javadoc, and you'll find 20 implementing classes (https://docs.oracle.com/javase/7/docs/api/java/util/Map.html).
+Each Map implementation has common properties that you want to avoid copying.
+In this post I illustrate two techniques you can use for testing common requirements over implementations by trying to implement and test a simplified version of java.util.Map.
 I encountered a similar problem when taking the coursera parallel programming course.
-You had to create sequential and parallel implentations and I noticed I ended up copying and pasting my tests of the sequential implementation to the paralell one. 
+The course's assignments required sequential and parallel implentations.
+I noticed I ended up copying and pasting my tests of the sequential implementation to the paralel one.
+I came up with these solutions to de-duplicate the code.
 
 = Introduction to Example =
 
@@ -18,13 +20,13 @@ public interface Map<K,V>  {
 
 We provide two implemenations of the interface.
 InefficientMap uses two arraylists to store the keys and values.
-SortedMap cheats by using the TreeMap implementation for the purpose of this example.
+SortedMap which guarentees that getKeys() returns the keys in sorted order.
+The implementations are purposely naive because the focus of this article is the testing aspect, not performance.
 
-= Method 1: Inheritance =
+= Method 1: Abstract Class =
 
-Inheritance can be used to test the common requirements of differing implementations.
+Abstract classes can be used to test the common requirements of differing implementations.
 This method provides the least code duplicated code.
-However, inheritance has the problem of becoming more tightly coupled to the parent classes (Effective Java and https://www.quora.com/What-are-the-main-disadvantages-of-inheritance-in-object-oriented-programming-and-why) so I provide a composition solution as well.
 You have all the common test cases in the base class which make use of a factory method for generating the implementation.
 
 To apply the inhertance you follow these steps:
@@ -66,7 +68,7 @@ Now for each implementation we extend from the abstract class and implement the 
 public class InheritingSortedMapTest extends InheritingMapTest {
 	
 	protected Map<Integer,Integer> makeMap() {
-		return new SortedMap<>();
+		return new SortedMap<>(IntComparator.intComparator);
 	}
 }
 
@@ -103,8 +105,9 @@ More importantly, it makes it more difficult to figure out which test failed bec
 7. Add any additional @Tests that test requirements specific to the implementation
 
 == Step 1 and 2: Create the Factory and Test Class ==
-public class CompositionMapTest {
+The 'Testing Class' has a Factory for creating new instances of the implemenation when it needs it.
 
+public class CompositionMapTest {
 	public interface MapFactory {
 		/**
 		 * Return a new instance of your implementation of Map<>
@@ -121,11 +124,7 @@ public class CompositionMapTest {
 
 == Step 3 and 4: Add Tests ==
 
-	public void testAll() {
-		...
-		testValueReplaced();
-		...
-	}
+We make use of the factory to create an instance of the implemenation to verify the object matches the specification.
 
 	private void testValueReplaced() {
 		Map<Integer,Integer> map = mapFactory.make();
@@ -134,14 +133,27 @@ public class CompositionMapTest {
 		assertEquals(Integer.valueOf(12), map.get(0));
 	}
 
+The 'Testing Class' invokes all the test methods in a "testAll()" method which the real test classes will call.
+
+	public void testAll() {
+		...
+		testValueReplaced();
+		...
+	}
+
+
 == Step 5 and 6: Create a class for each implementation ==
+
+To reuse the existing tests of the 'Test Class' we create an instance of it, providing it with a Factory for creating implemenations.
+We invoke the test class's "testAll()" method to check our implementation.
+
 public class CompositionSortedMapTest {
 	@Test
 	public void testBasicRequirements() {
 		CompositionMapTest basicTests = new CompositionMapTest(
 			new CompositionMapTest.MapFactory() {
 				public Map<Integer,Integer> make() {
-					return new SortedMap<>();
+					return new SortedMap<>(IntComparator.intComparator);
 				}
 			});
 		basicTests.testAll();
@@ -149,6 +161,9 @@ public class CompositionSortedMapTest {
 }
 
 == Step 7: Add any additional tests for uncommon requirements ==
+
+We write tests as we would normally for requirements that are not common to all Maps.
+
 	@Test
 	public void testKeysSorted() {
 		SortedMap<Integer,Integer> map = new SortedMap<>();
@@ -164,3 +179,5 @@ public class CompositionSortedMapTest {
 
 = Conclusion =
 If you notice you're copying and pasting unit test code for common requirements, consider one of these two techniques. 
+However, these techniques are only guides because you will encounter cases that do not fit cleanly.
+As an exercise for the reader: how would you extend these techniques to apply to java.util.WeakHashMap? 
