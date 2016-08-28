@@ -9,7 +9,7 @@ public class CompositionSortedMapTest {
 		CompositionMapTest basicTests = new CompositionMapTest(
 			new CompositionMapTest.MapFactory() {
 				public Map<Integer,Integer> make() {
-					return new SortedMap<>();
+					return new SortedMap<>(IntComparator.intComparator);
 				}
 			});
 		basicTests.testAll();
@@ -20,7 +20,7 @@ public class CompositionSortedMapTest {
 	 */
 	@Test
 	public void testKeysSorted() {
-		SortedMap<Integer,Integer> map = new SortedMap<>();
+		SortedMap<Integer,Integer> map = new SortedMap<>(IntComparator.intComparator);
 		map.put(2,12);
 		map.put(1,11);
 		map.put(3,13);

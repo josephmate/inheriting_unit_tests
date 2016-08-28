@@ -5,7 +5,7 @@ import java.util.*;
 public class InheritingSortedMapTest extends InheritingMapTest {
 	
 	protected Map<Integer,Integer> makeMap() {
-		return new SortedMap<>();
+		return new SortedMap<>(IntComparator.intComparator);
 	}
 	
 	/**
@@ -13,7 +13,7 @@ public class InheritingSortedMapTest extends InheritingMapTest {
 	 */
 	@Test
 	public void testKeysSorted() {
-		SortedMap<Integer,Integer> map = new SortedMap<>();
+		SortedMap<Integer,Integer> map = new SortedMap<>(IntComparator.intComparator);
 		map.put(2,12);
 		map.put(1,11);
 		map.put(3,13);

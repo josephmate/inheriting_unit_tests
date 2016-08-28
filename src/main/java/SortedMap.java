@@ -2,9 +2,12 @@ import java.util.*;
 
 public class SortedMap<K,V> implements Map<K,V> {
 
-	private java.util.SortedMap<K,V> internalMap = new TreeMap<>();
+	private final InefficientMap<K,V> internalMap = new InefficientMap<>();
+	private final Comparator<K> order;
 
-	public SortedMap() { }
+	public SortedMap(Comparator<K> order) {
+		this.order = order;
+	}
 	
 	public void put(K key, V value) {
 		internalMap.put(key, value);
@@ -15,7 +18,9 @@ public class SortedMap<K,V> implements Map<K,V> {
 	}
 
 	public List<K> getKeys() {
-		return new ArrayList(internalMap.keySet());
+		List<K> sortedResult = new ArrayList(internalMap.getKeys());
+		Collections.sort(sortedResult, order);
+		return sortedResult;
 	}
 
 }
