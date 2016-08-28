@@ -3,9 +3,9 @@ How would you verify each implementation?
 Take a quick look at the Map javadoc, and you'll find 20 implementing classes (https://docs.oracle.com/javase/7/docs/api/java/util/Map.html).
 Each Map implementation has common properties that you want to avoid copying.
 In this post I illustrate two techniques you can use for testing common requirements over implementations by trying to implement and test a simplified version of java.util.Map.
-I encountered a similar problem when taking the coursera parallel programming course.
-The course's assignments required sequential and parallel implentations.
-I noticed I ended up copying and pasting my tests of the sequential implementation to the paralel one.
+I encountered a similar problem when taking the Coursera parallel programming course.
+The course's assignments required sequential and parallel implementations.
+I noticed I ended up copying and pasting my tests of the sequential implementation to the parallel one.
 I came up with these solutions to de-duplicate the code.
 
 = Introduction to Example =
@@ -18,9 +18,9 @@ public interface Map<K,V>  {
 	List<K> getKeys();
 }
 
-We provide two implemenations of the interface.
-InefficientMap uses two arraylists to store the keys and values.
-SortedMap which guarentees that getKeys() returns the keys in sorted order.
+We provide two implementations of the interface.
+InefficientMap uses two ArrayLists to store the keys and values.
+SortedMap which guarantees that getKeys() returns the keys in sorted order.
 The implementations are purposely naive because the focus of this article is the testing aspect, not performance.
 
 = Method 1: Abstract Class =
@@ -29,17 +29,17 @@ Abstract classes can be used to test the common requirements of differing implem
 This method provides the least code duplicated code.
 You have all the common test cases in the base class which make use of a factory method for generating the implementation.
 
-To apply the inhertance you follow these steps:
+To apply the inheritance you follow these steps:
 1. Create an abstract class for the common unit tests
-2. Add an abstract method that expects the extender acts as the factory for the real implemenation
+2. Add an abstract method that expects the extender acts as the factory for the real implementation
 3. Add @Tests the verify the requirements of the interface
 4. Create a unit test class for each implementation and extend from the abstract unit test class
 5. Provide the real implementation expected by the abstract method
 6. Add any additional @Tests that test requirements specific to the implementation
 
 
-== Step 1 and 2: Creating the Abstact Class ==
-You create an abstract class with an abstract factory method for returning the real implemenation.
+== Step 1 and 2: Creating the Abstract Class ==
+You create an abstract class with an abstract factory method for returning the real implementation.
 
 public abstract class InheritingMapTest {
 	protect abstract Map<K,V> makeMap();
@@ -93,7 +93,7 @@ We add tests of this new requirement into the subclass.
 = Method 2: Composition  =
 An alternative to this pattern is to include all the tests in a help class and have each unit test call each of the help methods.
 The problem with this solution is that you end up having a method which calls all your test methods which duplicates some code.
-More importantly, it makes it more difficult to figure out which test failed because you have to inpsect the stack trace instead of click on the failed test in an IDE like eclipse.
+More importantly, it makes it more difficult to figure out which test failed because you have to inspect the stack trace instead of click on the failed test in an IDE like eclipse.
 
 
 1. Create a factory interface
@@ -105,7 +105,7 @@ More importantly, it makes it more difficult to figure out which test failed bec
 7. Add any additional @Tests that test requirements specific to the implementation
 
 == Step 1 and 2: Create the Factory and Test Class ==
-The 'Testing Class' has a Factory for creating new instances of the implemenation when it needs it.
+The 'Testing Class' has a Factory for creating new instances of the implementation when it needs it.
 
 public class CompositionMapTest {
 	public interface MapFactory {
@@ -124,7 +124,7 @@ public class CompositionMapTest {
 
 == Step 3 and 4: Add Tests ==
 
-We make use of the factory to create an instance of the implemenation to verify the object matches the specification.
+We make use of the factory to create an instance of the implementation to verify the object matches the specification.
 
 	private void testValueReplaced() {
 		Map<Integer,Integer> map = mapFactory.make();
@@ -144,7 +144,7 @@ The 'Testing Class' invokes all the test methods in a "testAll()" method which t
 
 == Step 5 and 6: Create a class for each implementation ==
 
-To reuse the existing tests of the 'Test Class' we create an instance of it, providing it with a Factory for creating implemenations.
+To reuse the existing tests of the 'Test Class' we create an instance of it, providing it with a Factory for creating implementations.
 We invoke the test class's "testAll()" method to check our implementation.
 
 public class CompositionSortedMapTest {
