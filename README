@@ -29,14 +29,11 @@ You have all the common test cases in the base class which make use of a factory
 
 To apply the inhertance you follow these steps:
 1. Create an abstract class for the common unit tests
-2. Add an abstract method that expects the extender acts as the factory for the
-   real implemenation
+2. Add an abstract method that expects the extender acts as the factory for the real implemenation
 3. Add @Tests the verify the requirements of the interface
-4. Create a unit test class for each implementation and extend from the abstract
-   unit test class
+4. Create a unit test class for each implementation and extend from the abstract unit test class
 5. Provide the real implementation expected by the abstract method
-6. Add any additional @Tests that test requirements specific to the
-   implementation
+6. Add any additional @Tests that test requirements specific to the implementation
 
 
 == Step 1 and 2: Creating the Abstact Class ==
@@ -96,7 +93,74 @@ An alternative to this pattern is to include all the tests in a help class and h
 The problem with this solution is that you end up having a method which calls all your test methods which duplicates some code.
 More importantly, it makes it more difficult to figure out which test failed because you have to inpsect the stack trace instead of click on the failed test in an IDE like eclipse.
 
-// TODO provide examples
+
+1. Create a factory interface
+2. Create class containing that accepts the factory in the constructor
+3. Add tests the verify the requirements of the interface
+4. Call each test method from a public 'testAll()' method
+5. Create a unit test class for each implementation that creates and instance of the test class
+6. Provide an implementation of the factory to the test class
+7. Add any additional @Tests that test requirements specific to the implementation
+
+== Step 1 and 2: Create the Factory and Test Class ==
+public class CompositionMapTest {
+
+	public interface MapFactory {
+		/**
+		 * Return a new instance of your implementation of Map<>
+		 */
+		Map<Integer,Integer> make() ;
+	}
+
+	private MapFactory mapFactory;
+
+	public CompositionMapTest(MapFactory mapFactory) {
+		this.mapFactory = mapFactory;
+	}
+}
+
+== Step 3 and 4: Add Tests ==
+
+	public void testAll() {
+		...
+		testValueReplaced();
+		...
+	}
+
+	private void testValueReplaced() {
+		Map<Integer,Integer> map = mapFactory.make();
+		map.put(0, 10);
+		map.put(0, 12);
+		assertEquals(Integer.valueOf(12), map.get(0));
+	}
+
+== Step 5 and 6: Create a class for each implementation ==
+public class CompositionSortedMapTest {
+	@Test
+	public void testBasicRequirements() {
+		CompositionMapTest basicTests = new CompositionMapTest(
+			new CompositionMapTest.MapFactory() {
+				public Map<Integer,Integer> make() {
+					return new SortedMap<>();
+				}
+			});
+		basicTests.testAll();
+	}
+}
+
+== Step 7: Add any additional tests for uncommon requirements ==
+	@Test
+	public void testKeysSorted() {
+		SortedMap<Integer,Integer> map = new SortedMap<>();
+		map.put(2,12);
+		map.put(1,11);
+		map.put(3,13);
+		List<Integer> keys = map.getKeys();
+		for(int i = 0 ; i<3; i++) {
+			assertEquals(Integer.valueOf(i+1),keys.get(i));
+		}
+	}
+
 
 = Conclusion =
 If you notice you're copying and pasting unit test code for common requirements, consider one of these two techniques. 
